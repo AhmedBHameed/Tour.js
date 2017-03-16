@@ -1,0 +1,38 @@
+		.item{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			backface-visibility: hidden;
+			left: 0%;
+			transition: transform 0.6s ease-in-out;	
+			display: none;
+			img{
+				width: 100%;
+				height: 100%;
+			}
+			@import '_captionStyle.scss';
+		}
+		.prevleft{
+			display: block;
+			transform: translate3d(100%,0,0);
+			
+		}
+		.nextleft{
+			display: block;
+			transform: translate3d(-100%,0,0);
+			
+		}
+		.prevright{
+			display: block;
+			transform: translate3d(-100%,0,0);
+			
+		}
+		.nextright{
+			display: block;
+			transform: translate3d(100%,0,0);
+			
+		}
+		.active{
+			display: block;
+			transform: translate3d(0%,0,0);
+		}
