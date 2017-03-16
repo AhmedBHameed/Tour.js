@@ -176,7 +176,7 @@ fn.addTimeLine = function () {
     this.timeLine.style.animationDuration = (this.default.delay / 1000) + 's';
     return;
 };
-fn.slideEffects = ['rolling'];
+fn.slideEffects = ['rolling', 'fading'];
 fn.init = function (prop) {
     this.cashing();
     this.extend(prop);
@@ -219,6 +219,6 @@ document.addEventListener('DOMContentLoaded', function () {
         "delay": '6000',
         "startCycle": true,
         "showArrows": true,
-		"slideEffect": 'rolling'
+		"slideEffect": 'fading'
     });
 });
