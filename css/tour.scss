@@ -1,10 +1,10 @@
-$carouselHeight: 400px;
-$carouselWidth: 90%;
+$tourHeight: 400px;
+$tourWidth: 90%;
 $indeicatorWidth: 14px;
 $pointWidth: 10px;
 
 //--------------
-$arrowTop: ($carouselHeight/2)-20px;
+$arrowTop: ($tourHeight/2)-20px;
 
 *{
 	border-size: border-box;
@@ -16,12 +16,12 @@ body{
 
 .container{
 	margin: 0 auto;
-	width: $carouselWidth;
-	height: $carouselHeight;
+	width: $tourWidth;
+	height: $tourHeight;
 	background: #aaa;
 }
 
-.carousel{
+.tour{
 	
 	position: relative;
 	perspective: 50em;
@@ -68,7 +68,7 @@ body{
 		}
 	}
 	
-	.carousel-inner{
+	.tour-inner{
 		position: relative;
 		width: 100%;
 		height: 100%;
@@ -80,7 +80,7 @@ body{
 	
 	
 	
-	a.carousel-control{
+	a.tour-control{
 		position: absolute;
 		top: 0;
 		right: 85%;
@@ -92,9 +92,10 @@ body{
 		span{
 			pointer-events: none;
 			width: 100%;
+			position: absolute;
+			top: 50%;
+			transform: translateY(-50%);
 			text-align: center;
-			margin-top: $arrowTop;
-			display: inline-block;
 			i{
 				font-size: 40px;
 				color: rgba(255,255,255,0.5);
@@ -107,11 +108,11 @@ body{
 			}
 		}
 	}
-	a.carousel-control.right{
+	a.tour-control.right{
 		right: 0%;
 		left: 85%;
 	}
-	a.carousel-control.right:hover{
+	a.tour-control.right:hover{
 		background: linear-gradient(-90deg, rgba(0,0,0,0.35), transparent);
 		i{
 			color: rgba(255,255,255,1);

@@ -1,8 +1,7 @@
 "use strict";
 (function (window) {	
-    function carousel(selector) {		
-        if (!(this instanceof carousel)) return new carousel(selector);
-
+    function tour(selector) {
+        if (!(this instanceof tour)) return new tour(selector);
         if (selector.nodeType == 1 || selector == window.document || selector == window) {
             this.push(selector);
             return;
@@ -10,21 +9,14 @@
         var arr = document.querySelectorAll(selector);
         arr.forEach(function (ele) {
             this.push(ele);
-        }.bind(this))
+        }.bind(this));
         return;
     }
-    window.carousel = carousel;
+    window.tour = tour;
     return;
 })(window);
 
-var fn = carousel.prototype = [];
-fn.default = {
-    "delay": 6000,
-    "transition": 'slide',
-    "startCycle": true,
-    "showArrows": true,
-	"slideEffect": ''
-};
+var fn = tour.prototype = [];
 fn.extend = function (prop) {
     if (prop && typeof prop == "object") {
         for (var value in prop) {
@@ -100,7 +92,7 @@ fn.to = function () {
     return;
 };
 fn.slideToRight;
-fn.calculatePosition = function (number) {
+fn.findPosition = function (number) {
     this.oldPos = this.currPos;
     this.currPos = number;
     if (this.currPos != this.oldPos) {
@@ -115,27 +107,36 @@ fn.calculatePosition = function (number) {
     return;
 }
 fn.events = function () {
-    this.next.onclick = function () {
+    this.next.addEventListener('click', function () {
 		if(this.underAnimate){
 			this.underAnimate = false;
-        	this.calculatePosition(this.currPos + 1);
+        	this.findPosition(this.currPos + 1);
 		}
-    }.bind(this);
-    this.prev.onclick = function () {
+    }.bind(this));
+    this.prev.addEventListener('click', function () {
 		if(this.underAnimate){
 			this.underAnimate = false;
-        	this.calculatePosition(this.currPos - 1);
+        	this.findPosition(this.currPos - 1);
 		}
-    }.bind(this);
+    }.bind(this));
     this.indicators.forEach(function (ele, i) {
         ele.onclick = function () {
-            this.calculatePosition(i);
+            this.findPosition(i);
         }.bind(this);
     }.bind(this));
     // window.onresize = function(){
     // 	this.arrangeSlides();
     // 	this.render();
     // }.bind(this);
+	document.addEventListener('keydown', function(e){
+		this.keyPressed[e.keyCode == 39 ? e.keyCode: null || e.keyCode == 37 ? e.keyCode: null] = true;
+		this.keyboardControll();
+	}.bind(this));
+	document.addEventListener('keyup', function(e){
+		this.keyPressed[e.keyCode == 39 ? e.keyCode: null || e.keyCode == 37 ? e.keyCode: null] = false;
+		this.keyboardControll();
+	}.bind(this));
+	
     if (this.default.startCycle == true) {
         this[0].addEventListener('mouseenter', function (e) {
             e.stopPropagation();
@@ -149,23 +150,46 @@ fn.events = function () {
     };
     return;
 }
+fn.keyPressed = {};
+fn.keyboardControll = function(){
+	if(this.keyPressed['39'] == true){
+		this.nextSlide();
+		this.stopIteration();
+	}else if(this.keyPressed['37'] == true){
+		this.prevSlide();
+		if(this.default.startCycle){
+			this.stopIteration();
+		}
+	}else{
+		if(this.default.startCycle){
+			this.startIteration();
+		}
+	}
+}
 fn.arrangeSlides = function () {
-    this.carouselWidth = this[0].offsetWidth;
+    this.tourWidth = this[0].offsetWidth;
     this.items.forEach(function (ele, i) {
-        ele.style.left = i * this.carouselWidth + 'px';
+        ele.style.left = i * this.tourWidth + 'px';
     }.bind(this));
     return;
 }
 fn.cashing = function () {
-    this.itemsLength = this[0].querySelectorAll('.carousel-inner .item').length;
-    this.next = this[0].querySelectorAll('.carousel-control.right')[0];
-    this.prev = this[0].querySelectorAll('.carousel-control.left')[0];
-    this.indicators = this[0].querySelectorAll('.carousel-indicators > li');
-    this.carouselWidth = this[0].offsetWidth;
-    this.carouselInner = this[0].querySelector('.carousel-inner');
-    this.items = this[0].querySelectorAll('.carousel-inner .item');
+    this.itemsLength = this[0].querySelectorAll('.tour-inner .item').length;
+    this.next = this[0].querySelectorAll('.tour-control.right')[0];
+    this.prev = this[0].querySelectorAll('.tour-control.left')[0];
+    this.indicators = this[0].querySelectorAll('.tour-indicators > li');
+    this.tourWidth = this[0].offsetWidth;
+    this.tourInner = this[0].querySelector('.tour-inner');
+    this.items = this[0].querySelectorAll('.tour-inner .item');
     this.nextSlide = this.next.click.bind(this.next);
     this.prevSlide = this.prev.click.bind(this.prev);
+	this.default = {
+		"delay": 6000,
+		"startCycle": true,
+		"showArrows": true,
+		"slideEffect": 'sliding',
+		"returnAPI": false
+	};
     return;
 }
 fn.addTimeLine = function () {
@@ -176,18 +200,29 @@ fn.addTimeLine = function () {
     this.timeLine.style.animationDuration = (this.default.delay / 1000) + 's';
     return;
 };
-fn.slideEffects = ['rolling', 'fading'];
+fn.transitionEffects = ['sliding','rolling', 'fading'];
+fn.changeTransition = function(prop){
+	if(typeof prop != 'undefined'){
+		var oldTrans = this.default['slideEffect'];
+		if(this.transitionEffects.indexOf(prop) > -1){
+			this.default['slideEffect'] = prop;
+				this.items.forEach(function(el){
+					el.classList.remove('item'+oldTrans);
+					el.classList.add('item'+this.default.slideEffect);
+				}.bind(this));
+		}else{
+			return 'error property! Transition must be one of the following: ('+this.transitionEffects.join(' or ')+')';
+		}
+		return 'Transition changed to '+this.default.slideEffect;
+	}else{
+		return 'Transition applied is '+this.default.slideEffect;
+	}
+};
 fn.init = function (prop) {
     this.cashing();
-    this.extend(prop);
-	if(this.slideEffects.indexOf(this.default.slideEffect) > -1){
-		this.items.forEach(function(el){
-			el.classList.remove('item');
-			el.classList.add('item'+this.default.slideEffect);
-		}.bind(this));
-	}else{
-		this.default.slideEffect = '';
-	}
+	this.extend(prop);
+    this.changeTransition(this.default.slideEffect);
+	
     this.events();
     if (this.default.startCycle == true) {
         this.addTimeLine();
@@ -199,26 +234,27 @@ fn.init = function (prop) {
     }
     return this;
 }
+
+
 fn.apply = function (prop) {
     var self = [];
     this.forEach(function (ele) {
-        self.push(new carousel(ele).init(prop));
-    }.bind(this))
-    return {
-        "carouselElement": self[0][0],
-        "next": self[0].nextSlide,
-        "prev": self[0].prevSlide,
-        "Indicators": self[0].indicators,
-        "Settings": self[0].default
-    };
+        self.push(new tour(ele).init(prop));
+    }.bind(this));
+	
+	if(!self[0].default.returnAPI){
+		var obj = {};
+		for(var i = 0 ; typeof self[i] == 'object'; i++){
+			obj['tour'+i] = {
+					"element": self[i][0],
+					"next": self[i].nextSlide,
+					"prev": self[i].prevSlide,
+					"indeicators": self[i].indicators,
+					"transition": self[i].changeTransition.bind(self[i])
+				};
+		}
+		return obj;
+	}else{
+		return;
+	}
 };
-
-document.addEventListener('DOMContentLoaded', function () {
-    document.removeEventListener('DOMContentLoaded', arguments.calee);
-    carousel('.carousel').apply({
-        "delay": '6000',
-        "startCycle": true,
-        "showArrows": true,
-		"slideEffect": 'fading'
-    });
-});
