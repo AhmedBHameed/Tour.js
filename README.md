@@ -14,10 +14,12 @@ See live [Tour Live Demo](http://codepen.io/Ahmed_B_Hameed/full/QdJBgN/)
 2. take a copy of both files tour.js and tour.css then paste them inside your project.
 3. append your project with the following tags which are:
 ```
+	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="yourPath/tour.css">
 	<script src="yourPath/tour.js" type="text/javascript"></script>
 ```
-4. Don't forget to execute Tour function by writing those codes:
+4. I used fontawesome library to bring the shape of arrows so if you want to do the same or ignore the first tag and use your own shape.
+5. Don't forget to execute Tour function by writing those codes:
 
 ```
 	document.addEventListener('DOMContentLoaded', function (){
@@ -90,6 +92,7 @@ Any other intiligent browser will just work fine.
 ### Built With
 
 * [Brackets IDE](http://brackets.io/).
+* [Fontawesome](http://fontawesome.io/).
 
 ### License
 
