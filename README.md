@@ -6,7 +6,11 @@ Tour is like bootstrap carousel with additional powerfull features. No need for 
 See live [Demo](http://codepen.io/Ahmed_B_Hameed/full/QdJBgN/)
 
 ## Version
-* Version 2.0
+* Version 2.5
+
+## New Features
+- V(2.5) The last code was not compatible with any internal update on the elements if you use this plugin with (Asynchronous request) like example so the new version solve this matter. In wrods you can use this plugin with Angular framework like any other plugin with no problem.
+- V(2.0) Solving some issues and adding few effects that can you change them using "slideEffect" property.
 
 ## 🔨 Getting Started
 
@@ -36,6 +40,8 @@ tour('.tour').apply();
 ## 🔬 Features and why Tour.js
 
 I was searching for a slider or carousel as they call it today for making my own specefic slider according to my properties. I did not find some thing special so i decided to build my own slider that can accept any developer requirement.
+
+Tour.js also work with asynchronous request using observer event if you use like example Angular http API but be in mind that features will still work for a period time to prevent any huge memory size utilization.
 
 Lets go with Tour.js features:
 When you run Tour function you can pass an object to do some controlls, the whole object is like this.

@@ -33,6 +33,7 @@ fn.cycle = false;
 fn.loop = null;
 fn.underAnimate = true;
 fn.render = function(){
+    // console.log(this.indicators);
 	this.indicators[this.oldPos].classList.remove('active');
 	this.indicators[this.currPos].classList.add('active'); // dont play with this
 	var prevItem = this.items[this.oldPos];
@@ -93,41 +94,89 @@ fn.to = function () {
 };
 fn.slideToRight;
 fn.findPosition = function (number) {
+    var itemsLength = this.items.length;
+    if(this.indicators.length != itemsLength){
+        throw new Error("Indicators length are not equal with your items!");
+    }
     this.oldPos = this.currPos;
     this.currPos = number;
     if (this.currPos != this.oldPos) {
-        if (this.currPos > this.itemsLength - 1) {
+        if (this.currPos > itemsLength - 1) {
             this.currPos = 0;
         } else if (this.currPos < 0) {
-            this.currPos = this.itemsLength - 1;
+            this.currPos = itemsLength - 1;
         }
         if(number > this.oldPos) {this.slideToRight = true} else {this.slideToRight = false};
         this.render();
     };
     return;
 }
+fn.liveEvent = function(){
+    var args        =null,
+        eventType   =null,
+        parent      =null,
+        child       =null,
+        callback    =null,
+        children    =null;
+
+    args = Array.prototype.slice.call(arguments);
+    if(typeof args[0] != "string" || typeof args[1] != "object"){
+        throw new Error("Arguments in liveEvent is invalid");
+    }
+    if(typeof args[2] == "string"){
+        child       = args[2];
+    }else if(typeof args[2] == "function"){
+        callback    = args[2];
+    }
+    if(typeof args[3] == "function"){
+        callback    = args[3];
+    }
+    eventType       = args[0];
+    if(args[1].nodeType == 1){
+        parent      = [args[1]];
+    }else{
+        parent      = args[1];
+    }
+    for(var i=0; i < parent.length; i++){
+        parent[i].addEventListener(eventType, function(e){
+            var target      = e.target || e.srcElement;
+            if(child != null){
+                var id          = target.nodeName.toLowerCase(),
+                    children    = parent[i-1].querySelectorAll(id),
+                    index       = Array.prototype.indexOf.call(children, target);
+
+                if(id == child){
+                    callback(target, index, children);
+                    return;
+                }
+            }else{
+                callback(target);
+                return;
+            }
+        }, false);
+    }
+    return;
+}
 fn.events = function () {
-    this.next.addEventListener('click', function () {
-		if(this.underAnimate){
-			this.underAnimate = false;
-        	this.findPosition(this.currPos + 1);
+    var self = this;
+    this.liveEvent('click', this.next , function(target){
+        if(self.underAnimate){
+			self.underAnimate = false;
+        	self.findPosition(self.currPos + 1);
 		}
-    }.bind(this));
-    this.prev.addEventListener('click', function () {
-		if(this.underAnimate){
-			this.underAnimate = false;
-        	this.findPosition(this.currPos - 1);
+    })
+    this.liveEvent('click', this.prev , function(target){
+        if(self.underAnimate){
+			self.underAnimate = false;
+        	self.findPosition(self.currPos - 1);
 		}
-    }.bind(this));
-    this.indicators.forEach(function (ele, i) {
-        ele.onclick = function () {
-            this.findPosition(i);
-        }.bind(this);
-    }.bind(this));
-    // window.onresize = function(){
-    // 	this.arrangeSlides();
-    // 	this.render();
-    // }.bind(this);
+    })
+    this.liveEvent('click', this.indicatorsContainer , 'li', function(target, index, children){
+        if(self.underAnimate){
+            self.underAnimate = false;
+            self.findPosition(index);
+        }
+    });
 	document.addEventListener('keydown', function(e){
 		this.keyPressed[e.keyCode == 39 ? e.keyCode: null || e.keyCode == 37 ? e.keyCode: null] = true;
 		this.keyboardControll();
@@ -166,18 +215,12 @@ fn.keyboardControll = function(){
 		}
 	}
 }
-fn.arrangeSlides = function () {
-    this.tourWidth = this[0].offsetWidth;
-    this.items.forEach(function (ele, i) {
-        ele.style.left = i * this.tourWidth + 'px';
-    }.bind(this));
-    return;
-}
+
 fn.cashing = function () {
-    this.itemsLength = this[0].querySelectorAll('.tour-inner .item').length;
     this.next = this[0].querySelectorAll('.tour-control.right')[0];
     this.prev = this[0].querySelectorAll('.tour-control.left')[0];
-    this.indicators = this[0].querySelectorAll('.tour-indicators > li');
+    this.indicatorsContainer = this[0].querySelector('.tour-indicators');
+    this.indicators = this.indicatorsContainer.querySelectorAll("li");
     this.tourWidth = this[0].offsetWidth;
     this.tourInner = this[0].querySelector('.tour-inner');
     this.items = this[0].querySelectorAll('.tour-inner .item');
@@ -191,6 +234,24 @@ fn.cashing = function () {
 		"returnAPI": false
 	};
     return;
+}
+fn.reCash = function(){
+    this.indicators = this.indicatorsContainer.querySelectorAll("li");
+    this.items = this[0].querySelectorAll('.tour-inner .item');
+    this.changeTransition(this.default.slideEffect);
+}
+fn.watch = function(){
+    var mutationObserver = window.MutationObserver || window.WebKitMutationObserver,spy;
+    if( MutationObserver ){
+        spy = new mutationObserver(function(mutation){
+            this.reCash();
+        }.bind(this));
+        var config = { attributes: false, childList: true, characterData: false };
+        spy.observe(this.tourInner, config);
+        setTimeout(function(){spy.disconnect()} , this.default.delay);
+    }else{
+        this.liveEvent('DOMNodeInserted', this.tourInner , this.reCash);
+    }
 }
 fn.addTimeLine = function () {
     var div = document.createElement('div');
@@ -218,8 +279,10 @@ fn.changeTransition = function(prop){
 		return 'Transition applied is '+this.default.slideEffect;
 	}
 };
+fn.version = "v2.5";
 fn.init = function (prop) {
     this.cashing();
+    this.watch();
 	this.extend(prop);
     this.changeTransition(this.default.slideEffect);
 	
@@ -242,7 +305,7 @@ fn.apply = function (prop) {
         self.push(new tour(ele).init(prop));
     }.bind(this));
 	
-	if(!self[0].default.returnAPI){
+	if(self[0].default.returnAPI){
 		var obj = {};
 		for(var i = 0 ; typeof self[i] == 'object'; i++){
 			obj['tour'+i] = {
@@ -255,6 +318,6 @@ fn.apply = function (prop) {
 		}
 		return obj;
 	}else{
-		return;
+		return true;
 	}
 };
