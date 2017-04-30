@@ -27,6 +27,52 @@ fn.extend = function (prop) {
     }
     return;
 };
+fn.liveEvent = function(){
+    var args        =null,
+        eventType   =null,
+        parent      =null,
+        child       =null,
+        callback    =null,
+        children    =null;
+
+    args = Array.prototype.slice.call(arguments);
+    if(typeof args[0] != "string" || typeof args[1] != "object"){
+        throw new Error("Arguments in liveEvent is invalid");
+    }
+    if(typeof args[2] == "string"){
+        child       = args[2];
+    }else if(typeof args[2] == "function"){
+        callback    = args[2];
+    }
+    if(typeof args[3] == "function"){
+        callback    = args[3];
+    }
+    eventType       = args[0];
+    if(args[1].nodeType == 1){
+        parent      = [args[1]];
+    }else{
+        parent      = args[1];
+    }
+    for(var i=0; i < parent.length; i++){
+        parent[i].addEventListener(eventType, function(e){
+            var target      = e.target || e.srcElement;
+            if(child != null){
+                var id          = target.nodeName.toLowerCase(),
+                    children    = parent[i-1].querySelectorAll(id),
+                    index       = Array.prototype.indexOf.call(children, target);
+
+                if(id == child){
+                    callback(target, index, children);
+                    return;
+                }
+            }else{
+                callback(target);
+                return;
+            }
+        }, false);
+    }
+    return;
+}
 fn.currPos = 0;
 fn.oldPos = 0;
 fn.cycle = false;
@@ -87,7 +133,8 @@ fn.startIteration = function () {
     return;
 }
 fn.to = function () {
-    this.nextSlide();
+    var next = this.currPos;
+	this.findPosition(++next);
     this.timeLine.classList.remove('animate');
     this.timeLine.classList.add('animate');
     return;
@@ -111,52 +158,7 @@ fn.findPosition = function (number) {
     };
     return;
 }
-fn.liveEvent = function(){
-    var args        =null,
-        eventType   =null,
-        parent      =null,
-        child       =null,
-        callback    =null,
-        children    =null;
 
-    args = Array.prototype.slice.call(arguments);
-    if(typeof args[0] != "string" || typeof args[1] != "object"){
-        throw new Error("Arguments in liveEvent is invalid");
-    }
-    if(typeof args[2] == "string"){
-        child       = args[2];
-    }else if(typeof args[2] == "function"){
-        callback    = args[2];
-    }
-    if(typeof args[3] == "function"){
-        callback    = args[3];
-    }
-    eventType       = args[0];
-    if(args[1].nodeType == 1){
-        parent      = [args[1]];
-    }else{
-        parent      = args[1];
-    }
-    for(var i=0; i < parent.length; i++){
-        parent[i].addEventListener(eventType, function(e){
-            var target      = e.target || e.srcElement;
-            if(child != null){
-                var id          = target.nodeName.toLowerCase(),
-                    children    = parent[i-1].querySelectorAll(id),
-                    index       = Array.prototype.indexOf.call(children, target);
-
-                if(id == child){
-                    callback(target, index, children);
-                    return;
-                }
-            }else{
-                callback(target);
-                return;
-            }
-        }, false);
-    }
-    return;
-}
 fn.events = function () {
     var self = this;
     this.liveEvent('click', this.next , function(target){
@@ -178,7 +180,7 @@ fn.events = function () {
         }
     });
 	document.addEventListener('keydown', function(e){
-		this.keyPressed[e.keyCode == 39 ? e.keyCode: null || e.keyCode == 37 ? e.keyCode: null] = true;
+        this.keyPressed[e.keyCode == 39 ? e.keyCode: null || e.keyCode == 37 ? e.keyCode: null] = true;
 		this.keyboardControll();
 	}.bind(this));
 	document.addEventListener('keyup', function(e){
@@ -201,19 +203,26 @@ fn.events = function () {
 }
 fn.keyPressed = {};
 fn.keyboardControll = function(){
-	if(this.keyPressed['39'] == true){
-		this.nextSlide();
-		this.stopIteration();
-	}else if(this.keyPressed['37'] == true){
-		this.prevSlide();
-		if(this.default.startCycle){
-			this.stopIteration();
-		}
-	}else{
-		if(this.default.startCycle){
-			this.startIteration();
-		}
-	}
+    if(this.underAnimate){
+        this.underAnimate = false;
+        if(this.keyPressed['39'] == true){
+            var next = this.currPos;
+            this.findPosition(++next);
+            if(this.default.startCycle){
+                this.stopIteration();
+            }
+        }else if(this.keyPressed['37'] == true){
+            var prev = this.currPos;
+            this.findPosition(--prev);
+            if(this.default.startCycle){
+                this.stopIteration();
+            }
+        }else{
+            if(this.default.startCycle){
+                this.startIteration();
+            }
+        }
+    }
 }
 
 fn.cashing = function () {
